@@ -1,14 +1,15 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.10;
 
-import {FlashLoanSimpleReceiverBase} from "https://github.com/aave/aave-v3-core/...";
-import {IPoolAddressesProvider} from "https://github.com/aave/aave-v3-core/...";
-import {IERC20} from "https://github.com/aave/aave-v3-core/...";
+import {FlashLoanSimpleReceiverBase} from "@aave/core-v3/contracts/flashloan/base/FlashLoanSimpleReceiverBase.sol";
+import {IPoolAddressesProvider} from "@aave/core-v3/contracts/interfaces/IPoolAddressesProvider.sol";
+import {IERC20} from "@aave/core-v3/contracts/dependencies/openzeppelin/contracts/IERC20.sol";
+
 
 contract FlashLoan is FlashLoanSimpleReceiverBase {
     address payable owner;
-    constructor (address _addressProvider) FlashLoanSimpleReceiverBabe(IPoolAddressesProvider (_addressProvider)) {
-        owerner = payable(msg.sender);
+    constructor (address _addressProvider) FlashLoanSimpleReceiverBase(IPoolAddressesProvider (_addressProvider)) {
+        owner = payable(msg.sender);
     }
     
 
@@ -36,7 +37,7 @@ contract FlashLoan is FlashLoanSimpleReceiverBase {
     bytes memory params ="";
     uint16 referralCode = 0;
 
-    POOL.FlashLoanSimple(
+    POOL.flashLoanSimple(
         receiverAddress,
         asset,
         amount,
@@ -46,14 +47,16 @@ contract FlashLoan is FlashLoanSimpleReceiverBase {
   }
 
 
-  function getBalanceOf(address _tokenAddress) external view returns(uint265){
+  function getBalanceOf(address _tokenAddress) external view returns(uint){
     return IERC20(_tokenAddress).balanceOf(address(this));
   }
 
+
   function withdrawToken(address _tokenAddress) external onlyOwner {
-    address token = IERC20(_tokenAddress);
-    token.transfer(msg.sender, token.balanceOf(address(this)));
-  }
+        IERC20 token = IERC20(_tokenAddress);
+        token.transfer(msg.sender, token.balanceOf(address(this)));
+    }
+
 
   modifier onlyOwner{
     require(msg.sender == owner, 'Only owner can withdraw token');
